@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173d35">
+  <title>Criar acesso | Casa Norte CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { font-family: "DM Sans", sans-serif; color: #193b35; background: #f4f6f1; font-synthesis: none; text-rendering: optimizeLegibility; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; display: grid; grid-template-columns: minmax(300px, 1fr) minmax(360px, 480px); background: #f4f6f1; }
+    .brand-panel { position: relative; display: flex; min-height: 100vh; flex-direction: column; justify-content: space-between; overflow: hidden; padding: 36px 42px; background: #173d35; color: white; }
+    .brand-panel::after { position: absolute; right: -110px; bottom: -180px; width: 580px; height: 580px; border: 1px solid rgba(207,229,123,.18); border-radius: 50%; content: ""; box-shadow: 0 0 0 38px rgba(207,229,123,.035), 0 0 0 78px rgba(207,229,123,.025); }
+    .brand { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; }
+    .brand-mark { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 11px; background: #cfe57b; color: #173d35; }
+    .brand-mark svg { width: 19px; height: 19px; }
+    .brand-name { font: 800 17px Manrope, sans-serif; }
+    .brand-sub { margin-top: 2px; color: #b3c9bc; font-size: 9px; letter-spacing: 1px; }
+    .panel-copy { position: relative; z-index: 1; max-width: 470px; margin: auto 0; padding: 65px 0; }
+    .panel-kicker { color: #cfe57b; font-size: 10px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; }
+    .panel-copy h1 { max-width: 430px; margin: 15px 0; font: 700 42px/1.12 Manrope, sans-serif; }
+    .panel-copy p { max-width: 365px; margin: 0; color: #bbcec3; font-size: 13px; line-height: 1.75; }
+    .panel-foot { position: relative; z-index: 1; color: #a7c0b1; font-size: 10px; }
+    .form-side { display: grid; place-items: center; padding: 35px; background: #f4f6f1; }
+    .signup-box { width: min(100%, 350px); }
+    .mobile-brand { display: none; }
+    h2 { margin: 0; font: 700 24px Manrope, sans-serif; }
+    .intro { margin: 8px 0 24px; color: #829188; font-size: 12px; line-height: 1.5; }
+    .field { display: grid; gap: 7px; margin-bottom: 14px; }
+    label { color: #4e685a; font-size: 10px; font-weight: 600; }
+    input { width: 100%; height: 43px; padding: 0 12px; border: 1px solid #dfe7df; border-radius: 7px; outline: 0; background: white; color: #264b3b; font-size: 12px; }
+    input[type="file"] { height: auto; padding: 9px; font-size: 10px; }
+    input:focus { border-color: #6a9a7a; box-shadow: 0 0 0 3px rgba(91,146,108,.12); }
+    .photo-preview { display: none; width: 56px; height: 56px; border: 1px solid #dfe7df; border-radius: 50%; object-fit: cover; }
+    .photo-preview.visible { display: block; }
+    button { display: flex; width: 100%; height: 43px; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; border: 0; border-radius: 7px; background: #1b5c4a; color: white; font: 600 12px "DM Sans", sans-serif; cursor: pointer; }
+    button:hover { background: #124b3b; }
+    button:disabled { cursor: wait; opacity: .65; }
+    .error { display: none; margin: 0 0 13px; padding: 10px 11px; border: 1px solid #f0d2ca; border-radius: 6px; background: #fff7f4; color: #a74f3b; font-size: 10px; line-height: 1.5; }
+    .error.visible { display: block; }
+    .error.success { border-color: #cfe1d1; background: #edf6ed; color: #315f47; }
+    .login-link { margin: 17px 0 0; color: #829188; font-size: 11px; text-align: center; }
+    .login-link a { color: #1b5c4a; font-weight: 700; text-decoration: none; }
+    .login-link a:hover { text-decoration: underline; }
+    @media (max-width: 720px) { body { display: block; } .brand-panel { display: none; } .form-side { min-height: 100vh; padding: 28px 24px; } .mobile-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 38px; } .mobile-brand .brand-name { color: #193b35; } .mobile-brand .brand-sub { color: #829188; } h2 { font-size: 22px; } }
+  </style>
+</head>
+<body>
+  <section class="brand-panel"><div class="brand"><div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"/></svg></div><div><div class="brand-name">casa norte</div><div class="brand-sub">CRM IMOBILIÁRIO</div></div></div><div class="panel-copy"><div class="panel-kicker">Casa Norte · equipe comercial</div><h1>Seu próximo negócio começa por aqui.</h1><p>Crie seu acesso individual para acompanhar relacionamentos, visitas e novas conquistas.</p></div><div class="panel-foot">Acesso exclusivo para a equipe Casa Norte.</div></section>
+  <main class="form-side"><div class="signup-box"><div class="mobile-brand"><div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"/></svg></div><div><div class="brand-name">casa norte</div><div class="brand-sub">CRM IMOBILIÁRIO</div></div></div><h2>Criar acesso de corretor</h2><p class="intro">Informe seus dados para entrar no CRM da equipe.</p><div id="signup-error" class="error" role="alert"></div><form id="signup-form"><div class="field"><label for="name">Nome completo</label><input id="name" name="name" autocomplete="name" maxlength="100" required autofocus></div><div class="field"><label for="username">Usuário</label><input id="username" name="username" autocomplete="username" minlength="3" maxlength="80" pattern="[a-zA-Z0-9._\-]+" required><span class="help">Use letras, números, ponto, hífen ou sublinhado.</span></div><div class="field"><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email" maxlength="254" required></div><div class="field"><label for="photo">Foto de perfil</label><input id="photo" name="photo" type="file" accept="image/png,image/jpeg,image/webp"><span class="help">PNG, JPEG ou WebP, até 512 KB.</span><img id="photo-preview" class="photo-preview" alt="Prévia da foto de perfil"></div><div class="field"><label for="password">Senha</label><input id="password" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="256" required><span class="help">Use pelo menos 12 caracteres.</span></div><div class="field"><label for="password-confirm">Confirme a senha</label><input id="password-confirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="12" maxlength="256" required></div><button type="submit" id="submit-button">Criar meu acesso</button></form><p class="login-link">Já tem cadastro? <a href="/">Voltar para entrar</a></p></div></main>
+  <script>
+    const form = document.getElementById("signup-form");
+    const errorBox = document.getElementById("signup-error");
+    const button = document.getElementById("submit-button");
+    const photoInput = document.getElementById("photo");
+    const photoPreview = document.getElementById("photo-preview");
+    let selectedPhoto = "";
+    const readPhoto = file => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Não foi possível ler a foto selecionada."));
+      reader.readAsDataURL(file);
+    });
+    photoInput.addEventListener("change", async () => {
+      const file = photoInput.files[0];
+      photoPreview.classList.toggle("visible", Boolean(file));
+      selectedPhoto = "";
+      if (file) {
+        try {
+          selectedPhoto = await readPhoto(file);
+          photoPreview.src = selectedPhoto;
+        } catch (error) {
+          photoPreview.classList.remove("visible");
+          errorBox.textContent = error.message;
+          errorBox.classList.add("visible");
+        }
+      }
+    });
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      errorBox.classList.remove("visible");
+      const values = new FormData(form);
+      if (values.get("password") !== values.get("passwordConfirm")) {
+        errorBox.textContent = "As senhas informadas não coincidem.";
+        errorBox.classList.add("visible");
+        return;
+      }
+      button.disabled = true;
+      button.textContent = "Criando seu acesso...";
+      try {
+        const photoFile = photoInput.files[0];
+        if (photoFile && photoFile.size > 512 * 1024) throw new Error("A foto deve ter no máximo 512 KB.");
+        const photo = photoFile ? selectedPhoto || await readPhoto(photoFile) : "";
+        const response = await fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: values.get("name"), username: values.get("username"), email: values.get("email"), password: values.get("password"), photo }), credentials: "same-origin" });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Não foi possível criar o acesso.");
+        errorBox.textContent = "Cadastro enviado. Aguarde a aprovação do administrador para acessar o CRM.";
+        errorBox.className = "error visible success";
+        button.textContent = "Cadastro enviado";
+      } catch (error) {
+        errorBox.textContent = error.message || "Não foi possível conectar ao servidor.";
+        errorBox.classList.add("visible");
+        button.disabled = false;
+        button.textContent = "Criar meu acesso";
+      }
+    });
+  </script>
+</body>
+</html>

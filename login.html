@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173d35">
+  <title>Entrar | Casa Norte CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { font-family: "DM Sans", sans-serif; color: #193b35; background: #f4f6f1; font-synthesis: none; text-rendering: optimizeLegibility; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; display: grid; grid-template-columns: minmax(300px, 1fr) minmax(360px, 480px); background: #f4f6f1; }
+    .brand-panel { position: relative; display: flex; min-height: 100vh; flex-direction: column; justify-content: space-between; overflow: hidden; padding: 36px 42px; background: #173d35; color: white; }
+    .brand-panel::after { position: absolute; right: -110px; bottom: -180px; width: 580px; height: 580px; border: 1px solid rgba(207,229,123,.18); border-radius: 50%; content: ""; box-shadow: 0 0 0 38px rgba(207,229,123,.035), 0 0 0 78px rgba(207,229,123,.025); }
+    .brand { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; }
+    .brand-mark { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 11px; background: #cfe57b; color: #173d35; }
+    .brand-mark svg { width: 19px; height: 19px; }
+    .brand-name { font: 800 17px Manrope, sans-serif; }
+    .brand-sub { margin-top: 2px; color: #b3c9bc; font-size: 9px; letter-spacing: 1px; }
+    .panel-copy { position: relative; z-index: 1; max-width: 470px; margin: auto 0; padding: 65px 0; }
+    .panel-kicker { color: #cfe57b; font-size: 10px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; }
+    .panel-copy h1 { max-width: 430px; margin: 15px 0; font: 700 42px/1.12 Manrope, sans-serif; }
+    .panel-copy p { max-width: 365px; margin: 0; color: #bbcec3; font-size: 13px; line-height: 1.75; }
+    .panel-foot { position: relative; z-index: 1; color: #a7c0b1; font-size: 10px; }
+    .form-side { display: grid; place-items: center; padding: 35px; background: #f4f6f1; }
+    .login-box { width: min(100%, 350px); }
+    .mobile-brand { display: none; }
+    h2 { margin: 0; font: 700 24px Manrope, sans-serif; }
+    .intro { margin: 8px 0 26px; color: #829188; font-size: 12px; }
+    .field { display: grid; gap: 7px; margin-bottom: 15px; }
+    label { color: #4e685a; font-size: 10px; font-weight: 600; }
+    input { width: 100%; height: 43px; padding: 0 12px; border: 1px solid #dfe7df; border-radius: 7px; outline: 0; background: white; color: #264b3b; font-size: 12px; }
+    input:focus { border-color: #6a9a7a; box-shadow: 0 0 0 3px rgba(91,146,108,.12); }
+    button { display: flex; width: 100%; height: 43px; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; border: 0; border-radius: 7px; background: #1b5c4a; color: white; font: 600 12px "DM Sans", sans-serif; cursor: pointer; }
+    button:hover { background: #124b3b; }
+    button:disabled { cursor: wait; opacity: .65; }
+    .signup-link { margin: 17px 0 0; color: #829188; font-size: 11px; text-align: center; }
+    .signup-link a { color: #1b5c4a; font-weight: 700; text-decoration: none; }
+    .signup-link a:hover { text-decoration: underline; }
+    .error { display: none; margin: 0 0 13px; padding: 10px 11px; border: 1px solid #f0d2ca; border-radius: 6px; background: #fff7f4; color: #a74f3b; font-size: 10px; line-height: 1.5; }
+    .error.visible { display: block; }
+    .secure-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 20px; color: #8b9990; font-size: 9px; }
+    .secure-note svg { width: 13px; height: 13px; color: #5c8c68; }
+    @media (max-width: 720px) { body { display: block; } .brand-panel { display: none; } .form-side { min-height: 100vh; padding: 28px 24px; } .mobile-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 43px; } .mobile-brand .brand-name { color: #193b35; } .mobile-brand .brand-sub { color: #829188; } h2 { font-size: 22px; } }
+  </style>
+</head>
+<body>
+  <section class="brand-panel"><div class="brand"><div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"/></svg></div><div><div class="brand-name">casa norte</div><div class="brand-sub">CRM IMOBILIÁRIO</div></div></div><div class="panel-copy"><div class="panel-kicker">Casa Norte · equipe comercial</div><h1>Bons negócios começam com boas conversas.</h1><p>Um espaço seguro para acompanhar cada relacionamento, visita e nova conquista.</p></div><div class="panel-foot">Acesso exclusivo para a equipe Casa Norte.</div></section>
+  <main class="form-side"><div class="login-box"><div class="mobile-brand"><div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"/></svg></div><div><div class="brand-name">casa norte</div><div class="brand-sub">CRM IMOBILIÁRIO</div></div></div><h2>Bem-vindo de volta</h2><p class="intro">Entre com seu acesso individual.</p><div id="login-error" class="error" role="alert"></div><form id="login-form"><div class="field"><label for="username">Usuário</label><input id="username" name="username" autocomplete="username" required autofocus></div><div class="field"><label for="password">Senha</label><input id="password" name="password" type="password" autocomplete="current-password" required></div><button type="submit" id="submit-button">Entrar no CRM</button></form><p class="signup-link">Corretor da equipe? <a href="/cadastro">Criar cadastro de acesso</a></p><div class="secure-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></svg>Acesso protegido e individual</div></div></main>
+  <script>
+    const form = document.getElementById("login-form");
+    const errorBox = document.getElementById("login-error");
+    const button = document.getElementById("submit-button");
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      errorBox.classList.remove("visible");
+      button.disabled = true;
+      button.textContent = "Verificando acesso...";
+      try {
+        const response = await fetch("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: form.username.value, password: form.password.value }), credentials: "same-origin" });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Não foi possível entrar.");
+        window.location.replace("/");
+      } catch (error) {
+        errorBox.textContent = error.message || "Não foi possível conectar ao servidor.";
+        errorBox.classList.add("visible");
+        button.disabled = false;
+        button.textContent = "Entrar no CRM";
+      }
+    });
+  </script>
+</body>
+</html>

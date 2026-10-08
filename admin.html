@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acessos da equipe | Casa Norte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --ink:#193b35; --muted:#87948e; --line:#e7ebe5; --green:#1b5c4a; font-family:"DM Sans",sans-serif; background:#f5f6f1; color:var(--ink); font-synthesis:none; text-rendering:optimizeLegibility; }
+    * { box-sizing:border-box; } body { margin:0; min-width:320px; } button,input,select { font:inherit; }
+    header { display:flex; height:64px; align-items:center; justify-content:space-between; padding:0 max(22px,calc((100% - 1100px)/2)); border-bottom:1px solid var(--line); background:#fff; }
+    .brand { font:800 15px Manrope,sans-serif; } .brand small { display:block; margin-top:2px; color:#87948e; font:600 8px "DM Sans",sans-serif; letter-spacing:1px; }
+    .header-actions { display:flex; align-items:center; gap:12px; } .who { color:#61756a; font-size:10px; }
+    .button { min-height:34px; padding:0 12px; border:1px solid var(--line); border-radius:6px; background:#fff; color:#456256; font-size:10px; font-weight:600; cursor:pointer; }
+    .button:hover { border-color:#bfd0c6; } .primary { border-color:var(--green); background:var(--green); color:#fff; } .primary:hover { background:#124b3b; } .button.danger { border-color:#dfc5bf; color:#a74f3b; } .button.danger:hover { border-color:#a74f3b; background:#fff7f4; }
+    main { width:min(1100px,100%); margin:0 auto; padding:34px 22px; }
+    .eyebrow { color:#789080; font-size:9px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; }
+    h1 { margin:7px 0 5px; font:700 24px Manrope,sans-serif; } .sub { margin:0; color:var(--muted); font-size:11px; }
+    .online-status { display:flex; align-items:center; gap:7px; margin-top:10px; color:#426d53; font-size:11px; font-weight:600; }
+    .online-dot { width:8px; height:8px; flex:0 0 8px; border-radius:50%; background:#4f9a67; }
+    .layout { display:grid; grid-template-columns:minmax(260px,330px) minmax(0,1fr); gap:16px; margin-top:23px; align-items:start; }
+    .panel { border:1px solid var(--line); border-radius:8px; background:#fff; } .panel-head { padding:16px 17px 12px; border-bottom:1px solid #eff1ed; }
+    h2 { margin:0; font:700 12px Manrope,sans-serif; } .panel-head p { margin:4px 0 0; color:var(--muted); font-size:9px; }
+    form { display:grid; gap:12px; padding:16px 17px 18px; } label { display:grid; gap:6px; color:#53695e; font-size:9px; font-weight:600; }
+    input,select { width:100%; height:35px; padding:0 9px; border:1px solid #e2e9e2; border-radius:6px; outline:0; background:white; color:#294b3e; font-size:10px; }
+    input:focus,select:focus { border-color:#6a9a7a; box-shadow:0 0 0 3px rgba(91,146,108,.12); }
+    .help { color:#8b9990; font-size:9px; line-height:1.45; } .message { display:none; padding:9px; border-radius:5px; font-size:9px; line-height:1.4; } .message.show { display:block; } .message.error { background:#fff5f1; color:#a74f3b; } .message.success { background:#edf6ed; color:#315f47; }
+    .table-wrap { overflow-x:auto; } table { width:100%; border-collapse:collapse; text-align:left; } th { padding:11px 13px; background:#fafbf9; color:#93a097; font-size:8px; letter-spacing:.6px; text-transform:uppercase; white-space:nowrap; } td { padding:11px 13px; border-top:1px solid #eff1ed; color:#52675c; font-size:10px; white-space:nowrap; }
+    .user-name { color:#294b3e; font-weight:600; } .username { margin-top:3px; color:#93a097; font-size:9px; } .badge { color:#52745e; } .inactive { color:#ba654d; } .pending { color:#9a7132; } .row-actions { display:flex; justify-content:flex-end; gap:5px; } .row-actions .button { min-height:27px; padding:0 8px; font-size:9px; }
+    .table-foot { padding:11px 13px; border-top:1px solid var(--line); color:#96a198; font-size:9px; }
+    @media(max-width:760px) { .layout { grid-template-columns:1fr; } main { padding:24px 14px; } header { padding:0 14px; } h1 { font-size:21px; } }
+  </style>
+</head>
+<body>
+  <header><div class="brand">casa norte<small>CRM IMOBILIÁRIO</small></div><div class="header-actions"><span id="who" class="who"></span><a class="button" href="/">Voltar ao CRM</a><button id="logout" class="button" type="button">Sair</button></div></header>
+  <main><div class="eyebrow">Administração</div><h1>Acessos da equipe</h1><p class="sub">Contas individuais para a equipe comercial. Sem limite de usuários cadastrados.</p><p id="online-count" class="online-status" aria-live="polite"><span class="online-dot"></span>Atualizando presença...</p>
+    <div class="layout"><section class="panel"><div class="panel-head"><h2>Novo acesso</h2><p>Crie uma conta com senha individual.</p></div><form id="create-form"><label>Nome completo<input name="name" required maxlength="100" autocomplete="name"></label><label>Usuário de acesso<input name="username" required minlength="3" maxlength="80" pattern="[a-zA-Z0-9._\-]+" autocomplete="off"></label><label>Senha inicial<input name="password" type="password" required minlength="12" autocomplete="new-password"><span class="help">Mínimo de 12 caracteres. Compartilhe com a pessoa por um canal privado.</span></label><label>Perfil<select name="role"><option value="member">Equipe</option><option value="admin">Administrador</option></select></label><div id="form-message" class="message" role="status"></div><button class="button primary" type="submit">Criar acesso</button></form></section>
+      <section class="panel"><div class="panel-head"><h2>Contas cadastradas</h2><p>Desativar encerra as sessões; excluir remove o cadastro definitivamente.</p></div><div class="table-wrap"><table><thead><tr><th>Pessoa</th><th>E-mail</th><th>Perfil</th><th>Status</th><th>Ações</th></tr></thead><tbody id="users-table"></tbody></table></div><div id="total-users" class="table-foot"></div></section></div>
+  </main>
+  <script>
+    const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[char]);
+    const message = document.getElementById("form-message");
+    async function request(path, options = {}) { const response = await fetch(path, { credentials:"same-origin", ...options, headers:{ "Content-Type":"application/json", ...(options.headers || {}) } }); const result = await response.json(); if (!response.ok) throw new Error(result.error || "Não foi possível concluir a operação."); return result; }
+    async function loadUsers() {
+      const data = await request("/api/users");
+      document.getElementById("users-table").innerHTML = data.users.map(user => {
+        const status = !user.approved ? "Aguardando aprovação" : user.active ? "Ativo" : "Desativado";
+        const statusClass = !user.approved ? "pending" : user.active ? "badge" : "inactive";
+        const isCurrentUser = user.id === data.currentUserId;
+        const action = !user.approved
+          ? `<button class="button primary" data-approve="${user.id}">Aprovar</button>`
+          : `<button class="button" data-toggle="${user.id}" data-active="${user.active}">${user.active ? "Desativar" : "Reativar"}</button>`;
+        const deleteAction = isCurrentUser ? "" : `<button class="button danger" type="button" data-delete="${user.id}" data-name="${escapeHtml(user.name)}" title="Excluir cadastro definitivamente">Excluir</button>`;
+        return `<tr><td><div class="user-name">${escapeHtml(user.name)}</div><div class="username">${escapeHtml(user.username)}</div></td><td>${escapeHtml(user.email || "-")}</td><td>${user.role === "admin" ? "Administrador" : "Equipe"}</td><td class="${statusClass}">${status}</td><td><div class="row-actions">${action}${deleteAction}</div></td></tr>`;
+      }).join("");
+      const pending = data.users.filter(user => !user.approved).length;
+      document.getElementById("total-users").textContent = `${data.users.filter(user => user.active).length} acessos ativos · ${pending} aguardando aprovação`;
+      document.getElementById("online-count").innerHTML = `<span class="online-dot"></span>${data.online} ${data.online === 1 ? "usuário online" : "usuários online"} agora`;
+    }
+    document.getElementById("create-form").addEventListener("submit", async event => {
+      event.preventDefault(); const form = event.currentTarget; const values = Object.fromEntries(new FormData(form));
+      message.className = "message";
+      try { await request("/api/users", { method:"POST", body:JSON.stringify(values) }); form.reset(); message.textContent = "Acesso criado. Oriente a pessoa a trocar a senha inicial após entrar."; message.className = "message success show"; await loadUsers(); }
+      catch (error) { message.textContent = error.message; message.className = "message error show"; }
+    });
+    document.getElementById("users-table").addEventListener("click", async event => {
+      const approveButton = event.target.closest("[data-approve]");
+      if (approveButton) {
+        try {
+          await request(`/api/users/${approveButton.dataset.approve}`, { method:"PATCH", body:JSON.stringify({ approved:true }) });
+          message.textContent = "Cadastro aprovado. O usuário já pode entrar.";
+          message.className = "message success show";
+          await loadUsers();
+        } catch (error) { message.textContent = error.message; message.className = "message error show"; }
+        return;
+      }
+      const deleteButton = event.target.closest("[data-delete]");
+      if (deleteButton) {
+        const userName = deleteButton.dataset.name;
+        if (!window.confirm(`Excluir definitivamente o acesso de ${userName}? Essa ação não pode ser desfeita.`)) return;
+        try {
+          await request(`/api/users/${deleteButton.dataset.delete}`, { method:"DELETE" });
+          message.textContent = `O acesso de ${userName} foi excluído definitivamente.`;
+          message.className = "message success show";
+          await loadUsers();
+        } catch (error) { message.textContent = error.message; message.className = "message error show"; }
+        return;
+      }
+      const button = event.target.closest("[data-toggle]"); if (!button) return;
+      try { await request(`/api/users/${button.dataset.toggle}`, { method:"PATCH", body:JSON.stringify({ active:button.dataset.active !== "1" }) }); await loadUsers(); }
+      catch (error) { message.textContent = error.message; message.className = "message error show"; }
+    });
+    document.getElementById("logout").addEventListener("click", async () => { await request("/api/logout", { method:"POST", body:"{}" }); window.location.replace("/"); });
+    request("/api/me").then(({user}) => { document.getElementById("who").textContent = user.name; }).catch(() => window.location.replace("/"));
+    loadUsers().catch(() => window.location.replace("/"));
+    window.setInterval(() => { request("/api/heartbeat", { method:"POST", body:"{}" }).then(loadUsers).catch(() => {}); }, 30000);
+  </script>
+</body>
+</html>
