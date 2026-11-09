@@ -431,6 +431,10 @@
     async function apiRequest(path, options = {}) {
       const response = await fetch(path, { credentials: "same-origin", ...options, headers: { "Content-Type": "application/json", ...(options.headers || {}) } });
       const result = await response.json();
+      if (response.status === 401) {
+        window.location.replace("/");
+        throw new Error("Sua sessão expirou. Faça login novamente.");
+      }
       if (!response.ok) throw new Error(result.error || "Não foi possível concluir a operação.");
       return result;
     }
@@ -857,7 +861,11 @@
         }
         document.getElementById("admin-nav").hidden = user.role !== "admin";
         window.setInterval(() => {
-          fetch("/api/heartbeat", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}", credentials: "same-origin" }).catch(() => {});
+          fetch("/api/heartbeat", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}", credentials: "same-origin" })
+            .then(response => {
+              if (response.status === 401) window.location.replace("/");
+            })
+            .catch(() => {});
         }, 30_000);
         leads = (await apiRequest("/api/leads")).leads;
         if (!leads.length && user.role === "admin") {
@@ -919,7 +927,17 @@
     document.getElementById("new-lead-pipeline").addEventListener("click", openModal);
     document.getElementById("new-lead-registry").addEventListener("click", () => { activeStage = "Lead"; openModal(); });
     document.getElementById("export-button").addEventListener("click", downloadCsv);
-    document.getElementById("logout-button").addEventListener("click", async () => { await fetch("/api/logout", { method: "POST", body: "{}", credentials: "same-origin" }); window.location.replace("/"); });
+    document.getElementById("logout-button").addEventListener("click", async event => {
+      const button = event.currentTarget;
+      button.disabled = true;
+      try {
+        await apiRequest("/api/logout", { method: "POST", body: "{}" });
+        window.location.replace("/");
+      } catch (error) {
+        button.disabled = false;
+        notify(error.message || "Não foi possível sair do sistema.");
+      }
+    });
     const accountDeleteModal = document.getElementById("account-delete-modal");
     const accountDeleteForm = document.getElementById("account-delete-form");
     const accountDeleteError = document.getElementById("account-delete-error");

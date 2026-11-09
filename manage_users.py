@@ -1,9 +1,9 @@
 import argparse
 import getpass
-import sqlite3
 import sys
 
 import server
+from database import integrity_errors
 
 
 def normalize_username(value):
@@ -145,7 +145,7 @@ def main():
     try:
         server.initialize_db()
         args.action(args)
-    except (ValueError, sqlite3.IntegrityError) as error:
+    except (ValueError, *integrity_errors()) as error:
         print(f"Erro: {error}", file=sys.stderr)
         return 1
     return 0

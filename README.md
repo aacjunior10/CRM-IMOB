@@ -5,7 +5,8 @@ CRM imobiliário com login individual, sessões simultâneas e administração d
 ## Requisitos
 
 - Python 3.10 ou mais recente
-- Nenhuma biblioteca externa
+- Para o servidor local com SQLite, nenhuma biblioteca externa
+- Para o aplicativo ASGI e PostgreSQL na Vercel, `pip install -r requirements.txt`
 
 ## Primeiro acesso
 
@@ -51,3 +52,23 @@ Os usuários, sessões e leads compartilhadas ficam no arquivo `casa_norte.sqlit
 Para acesso por outros computadores da rede local, use `CRM_HOST=0.0.0.0`. Para acesso externo não exponha diretamente a internet: configure um proxy reverso com HTTPS, restrinja o acesso à rede da empresa, defina `CRM_TRUST_PROXY=1` e `CRM_HTTPS=1`, e encaminhe o tráfego ao servidor local. HTTPS é obrigatório fora do próprio computador para proteger senhas e cookies de sessão.
 
 É possível definir `CRM_PORT` e `CRM_DATABASE` para personalizar a porta e o arquivo de dados. As sessões usam tokens aleatórios criptograficamente seguros, armazenados no banco somente como hashes.
+
+## Publicação na Vercel
+
+O projeto também expõe as páginas e rotas da API pelo aplicativo ASGI em `app.py`. Na Vercel, vincule um banco PostgreSQL gerenciado (por exemplo, Neon) e configure a variável `DATABASE_URL` com a URL de conexão **pooled** do banco. Não salve essa URL nos arquivos do projeto. A Vercel deve detectar o aplicativo Python por `app.py` e `requirements.txt`; faça um novo deploy depois de configurar a variável. Sem uma URL PostgreSQL, o aplicativo na Vercel falha explicitamente em vez de gravar dados em um disco temporário.
+
+Crie/vincule o banco PostgreSQL antes do primeiro deploy. Cadastre `DATABASE_URL` no painel da Vercel para produção (e preview, se usado) e mantenha essa variável também no terminal apenas durante a migração. Não envie a URL de conexão pelo chat nem a inclua no repositório.
+
+Para copiar os dados atuais do SQLite, configure `DATABASE_URL` temporariamente no terminal local com a mesma URL segura do banco e execute:
+
+```powershell
+python migrate_sqlite_to_postgres.py
+```
+
+O script copia contas, sessões, tentativas de login, leads e documentos para um PostgreSQL vazio e mantém o arquivo SQLite original. Se encontrar dados existentes nas tabelas do CRM, ele interrompe a operação em vez de mesclar contas ou sobrescrever dados. Faça a migração uma vez e confira os totais. Se o banco migrado não tiver administrador, crie a conta usando a mesma `DATABASE_URL`:
+
+```powershell
+python manage_users.py create --name "Nome do administrador" --username admin --role admin
+```
+
+Para operar localmente com PostgreSQL, defina `DATABASE_URL`; sem ela, o servidor e os comandos administrativos continuam usando SQLite. No projeto Vercel, configure `DATABASE_URL` nos ambientes de produção e preview, conforme necessário, e nunca inclua credenciais em commits.

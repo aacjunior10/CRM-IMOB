@@ -6,13 +6,14 @@ import json
 import os
 import re
 import secrets
-import sqlite3
 import time
 from datetime import datetime
 from http import cookies
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import quote, unquote
+from urllib.parse import quote, unquote, urlsplit
+
+from database import connect_db, integrity_errors
 
 
 ROOT = Path(__file__).resolve().parent
@@ -21,24 +22,75 @@ HOST = os.environ.get("CRM_HOST", "0.0.0.0")
 PORT = int(os.environ.get("CRM_PORT", "8000"))
 SESSION_SECONDS = 8 * 60 * 60
 ONLINE_WINDOW_SECONDS = 120
-COOKIE_NAME = "casa_norte_session"
-HTTPS_ONLY = os.environ.get("CRM_HTTPS", "0") == "1"
+COOKIE_NAME = "casa_norte_session_v2"
+HTTPS_ONLY = os.environ.get("CRM_HTTPS", "0") == "1" or os.environ.get("VERCEL") == "1"
 PASSWORD_ITERATIONS = 600_000
 MAX_PROFILE_PHOTO_BYTES = 512 * 1024
 MAX_LEAD_DOCUMENT_BYTES = 10 * 1024 * 1024
 MAX_DOCUMENTS_PER_LEAD = 10
 
 
-def connect_db():
-    DATABASE.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(DATABASE, timeout=10)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys = ON")
-    return connection
-
-
 def initialize_db():
     with connect_db() as db:
+        if db.postgres:
+            statements = (
+                """CREATE TABLE IF NOT EXISTS users (
+                    id BIGSERIAL PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    username TEXT NOT NULL UNIQUE,
+                    email TEXT NOT NULL DEFAULT '',
+                    photo TEXT NOT NULL DEFAULT '',
+                    password_hash TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member')),
+                    active INTEGER NOT NULL DEFAULT 1,
+                    approved INTEGER NOT NULL DEFAULT 1,
+                    auth_version INTEGER NOT NULL DEFAULT 1,
+                    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::text)
+                )""",
+                """CREATE TABLE IF NOT EXISTS sessions (
+                    token_hash TEXT PRIMARY KEY,
+                    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    auth_version INTEGER NOT NULL,
+                    expires_at BIGINT NOT NULL,
+                    last_seen BIGINT NOT NULL DEFAULT 0
+                )""",
+                """CREATE TABLE IF NOT EXISTS login_attempts (
+                    id BIGSERIAL PRIMARY KEY,
+                    address TEXT NOT NULL,
+                    username TEXT NOT NULL,
+                    attempted_at BIGINT NOT NULL
+                )""",
+                """CREATE TABLE IF NOT EXISTS leads (
+                    id TEXT PRIMARY KEY,
+                    data TEXT NOT NULL,
+                    updated_at BIGINT NOT NULL
+                )""",
+                """CREATE TABLE IF NOT EXISTS lead_documents (
+                    id BIGSERIAL PRIMARY KEY,
+                    lead_id TEXT NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+                    name TEXT NOT NULL,
+                    mime_type TEXT NOT NULL CHECK (mime_type IN ('image/jpeg', 'application/pdf')),
+                    content BYTEA NOT NULL,
+                    size BIGINT NOT NULL,
+                    created_at BIGINT NOT NULL
+                )""",
+                "CREATE INDEX IF NOT EXISTS sessions_expiry ON sessions(expires_at)",
+                "CREATE INDEX IF NOT EXISTS sessions_last_seen ON sessions(last_seen)",
+                "CREATE INDEX IF NOT EXISTS login_attempts_lookup ON login_attempts(address, username, attempted_at)",
+                "CREATE INDEX IF NOT EXISTS leads_updated ON leads(updated_at DESC)",
+                "CREATE INDEX IF NOT EXISTS lead_documents_lookup ON lead_documents(lead_id, created_at DESC)",
+            )
+            for statement in statements:
+                db.execute(statement)
+            for statement in (
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT NOT NULL DEFAULT ''",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS photo TEXT NOT NULL DEFAULT ''",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS approved INTEGER NOT NULL DEFAULT 1",
+                "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS last_seen BIGINT NOT NULL DEFAULT 0",
+            ):
+                db.execute(statement)
+            return
+
         db.executescript("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -168,6 +220,10 @@ class CRMHandler(BaseHTTPRequestHandler):
     def log_message(self, format_string, *args):
         print(f"{self.address_string()} - {format_string % args}")
 
+    @property
+    def request_path(self):
+        return urlsplit(self.path).path.rstrip("/") or "/"
+
     def send_json(self, status, payload, headers=None):
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
@@ -251,7 +307,8 @@ class CRMHandler(BaseHTTPRequestHandler):
         return user
 
     def do_GET(self):
-        if self.path == "/api/me":
+        path = self.request_path
+        if path == "/api/me":
             user = self.require_user()
             if user:
                 with connect_db() as db:
@@ -259,16 +316,16 @@ class CRMHandler(BaseHTTPRequestHandler):
                     photo = db.execute("SELECT photo FROM users WHERE id = ?", (user["id"],)).fetchone()["photo"]
                 self.send_json(200, {"user": {"id": user["id"], "name": user["name"], "username": user["username"], "email": user["email"], "photo": photo, "role": user["role"]}})
             return
-        if self.path == "/api/users":
+        if path == "/api/users":
             user = self.require_user(admin=True)
             if not user:
                 return
             with connect_db() as db:
-                users = db.execute("SELECT id, name, username, email, role, active, approved, created_at FROM users ORDER BY name COLLATE NOCASE").fetchall()
+                users = db.execute("SELECT id, name, username, email, role, active, approved, created_at FROM users ORDER BY lower(name)").fetchall()
                 online = db.execute("SELECT COUNT(DISTINCT sessions.user_id) FROM sessions JOIN users ON users.id = sessions.user_id WHERE users.active = 1 AND sessions.expires_at > ? AND sessions.last_seen > ?", (int(time.time()), int(time.time()) - ONLINE_WINDOW_SECONDS)).fetchone()[0]
             self.send_json(200, {"users": [dict(item) for item in users], "capacity": "unlimited", "online": online, "currentUserId": user["id"]})
             return
-        if self.path == "/api/leads":
+        if path == "/api/leads":
             if not self.require_user():
                 return
             with connect_db() as db:
@@ -276,21 +333,21 @@ class CRMHandler(BaseHTTPRequestHandler):
             self.send_json(200, {"leads": [{**json.loads(row["data"]), "updatedAt": row["updated_at"]} for row in rows]})
             return
         lead_documents_prefix = "/api/leads/"
-        if self.path.startswith(lead_documents_prefix) and self.path.endswith("/documents"):
-            lead_id = unquote(self.path[len(lead_documents_prefix):-len("/documents")])
+        if path.startswith(lead_documents_prefix) and path.endswith("/documents"):
+            lead_id = unquote(path[len(lead_documents_prefix):-len("/documents")])
             self.list_lead_documents(lead_id)
             return
         document_prefix = "/api/lead-documents/"
-        if self.path.startswith(document_prefix):
-            self.send_lead_document(unquote(self.path[len(document_prefix):]))
+        if path.startswith(document_prefix):
+            self.send_lead_document(unquote(path[len(document_prefix):]))
             return
-        if self.path in ("/", "/login"):
+        if path in ("/", "/login"):
             if self.get_session():
                 self.send_html_file("index.html")
             else:
                 self.send_html_file("login.html")
             return
-        if self.path == "/cadastro":
+        if path == "/cadastro":
             if self.get_session():
                 self.send_response(302)
                 self.send_header("Location", "/")
@@ -298,7 +355,7 @@ class CRMHandler(BaseHTTPRequestHandler):
             else:
                 self.send_html_file("cadastro.html")
             return
-        if self.path == "/admin":
+        if path == "/admin":
             user = self.get_session()
             if not user:
                 self.send_response(302)
@@ -311,7 +368,7 @@ class CRMHandler(BaseHTTPRequestHandler):
             else:
                 self.send_html_file("admin.html")
             return
-        if self.path == "/favicon.ico":
+        if path == "/favicon.ico":
             self.send_response(204)
             self.send_header("Content-Length", "0")
             self.end_headers()
@@ -319,70 +376,73 @@ class CRMHandler(BaseHTTPRequestHandler):
         self.send_json(404, {"error": "Página não encontrada."})
 
     def do_POST(self):
+        path = self.request_path
         if not self.request_is_same_origin():
             self.send_json(403, {"error": "Origem da solicitação inválida."})
             return
-        if self.path == "/api/logout":
+        if path == "/api/logout":
             self.logout()
             return
-        if self.path == "/api/heartbeat":
+        if path == "/api/heartbeat":
             self.heartbeat()
             return
         lead_documents_prefix = "/api/leads/"
-        if self.path.startswith(lead_documents_prefix) and self.path.endswith("/documents"):
-            lead_id = unquote(self.path[len(lead_documents_prefix):-len("/documents")])
+        if path.startswith(lead_documents_prefix) and path.endswith("/documents"):
+            lead_id = unquote(path[len(lead_documents_prefix):-len("/documents")])
             self.upload_lead_document(lead_id)
             return
-        data = self.read_json(1_000_000 if self.path == "/api/register" else 16_384)
+        data = self.read_json(1_000_000 if path == "/api/register" else 16_384)
         if not isinstance(data, dict):
             self.send_json(400, {"error": "Dados inválidos."})
             return
-        if self.path == "/api/login":
+        if path == "/api/login":
             self.login(data)
-        elif self.path == "/api/register":
+        elif path == "/api/register":
             self.register_user(data)
-        elif self.path == "/api/users":
+        elif path == "/api/users":
             self.create_user(data)
-        elif self.path == "/api/account/delete":
+        elif path == "/api/account/delete":
             self.delete_own_account(data)
-        elif self.path == "/api/leads":
+        elif path == "/api/leads":
             self.create_lead(data)
-        elif self.path == "/api/leads/seed":
+        elif path == "/api/leads/seed":
             self.seed_leads(data)
         else:
             self.send_json(404, {"error": "Rota não encontrada."})
 
     def do_PATCH(self):
+        path = self.request_path
         if not self.request_is_same_origin():
             self.send_json(403, {"error": "Origem da solicitação inválida."})
             return
-        data = self.read_json(32_768 if self.path.startswith("/api/leads/") else 16_384)
+        data = self.read_json(32_768 if path.startswith("/api/leads/") else 16_384)
         if not isinstance(data, dict):
             self.send_json(400, {"error": "Dados inválidos."})
             return
-        if self.path.startswith("/api/users/"):
-            self.update_user(unquote(self.path[len("/api/users/"):]), data)
-        elif self.path.startswith("/api/leads/"):
-            self.update_lead(unquote(self.path[len("/api/leads/"):]), data)
+        if path.startswith("/api/users/"):
+            self.update_user(unquote(path[len("/api/users/"):]), data)
+        elif path.startswith("/api/leads/"):
+            self.update_lead(unquote(path[len("/api/leads/"):]), data)
         else:
             self.send_json(404, {"error": "Rota não encontrada."})
 
     def do_DELETE(self):
+        path = self.request_path
         if not self.request_is_same_origin():
             self.send_json(403, {"error": "Origem da solicitação inválida."})
             return
         document_prefix = "/api/lead-documents/"
-        if self.path.startswith(document_prefix):
-            self.delete_lead_document(unquote(self.path[len(document_prefix):]))
+        if path.startswith(document_prefix):
+            self.delete_lead_document(unquote(path[len(document_prefix):]))
             return
         prefix = "/api/users/"
-        if not self.path.startswith(prefix):
+        if not path.startswith(prefix):
             self.send_json(404, {"error": "Rota não encontrada."})
             return
         actor = self.require_user(admin=True)
         if not actor:
             return
-        user_id = unquote(self.path[len(prefix):])
+        user_id = unquote(path[len(prefix):])
         if not user_id.isdigit():
             self.send_json(400, {"error": "Usuário inválido."})
             return
@@ -630,6 +690,7 @@ class CRMHandler(BaseHTTPRequestHandler):
         address = self.client_address[0]
         now = int(time.time())
         with connect_db() as db:
+            db.execute("BEGIN IMMEDIATE")
             db.execute("DELETE FROM login_attempts WHERE attempted_at < ?", (now - 900,))
             attempts = db.execute("SELECT COUNT(*) FROM login_attempts WHERE address = ? AND username = ?", (address, username)).fetchone()[0]
             if attempts >= 5:
@@ -650,7 +711,7 @@ class CRMHandler(BaseHTTPRequestHandler):
             token = secrets.token_urlsafe(32)
             db.execute("DELETE FROM sessions WHERE expires_at <= ?", (now,))
             db.execute("INSERT INTO sessions(token_hash, user_id, auth_version, expires_at, last_seen) VALUES (?, ?, ?, ?, ?)", (token_digest(token), row["id"], row["auth_version"], now + SESSION_SECONDS, now))
-        cookie = f"{COOKIE_NAME}={token}; HttpOnly; SameSite=Strict; Path=/; Max-Age={SESSION_SECONDS}"
+        cookie = f"{COOKIE_NAME}={token}; HttpOnly; SameSite=Strict; Path=/"
         if HTTPS_ONLY:
             cookie += "; Secure"
         self.send_json(200, {"user": {"name": row["name"], "role": row["role"]}}, {"Set-Cookie": cookie})
@@ -718,7 +779,7 @@ class CRMHandler(BaseHTTPRequestHandler):
             with connect_db() as db:
                 cursor = db.execute("INSERT INTO users(name, username, password_hash, role) VALUES (?, ?, ?, ?)", (name, username, hash_password(password), role))
                 user_id = cursor.lastrowid
-        except sqlite3.IntegrityError:
+        except integrity_errors():
             self.send_json(409, {"error": "Este usuário já existe."})
             return
         self.send_json(201, {"user": {"id": user_id, "name": name, "username": username, "role": role, "active": 1}})
@@ -745,7 +806,7 @@ class CRMHandler(BaseHTTPRequestHandler):
             with connect_db() as db:
                 cursor = db.execute("INSERT INTO users(name, username, email, photo, password_hash, role, active, approved) VALUES (?, ?, ?, ?, ?, 'member', 0, 0)", (name, username, email, photo, hash_password(password)))
                 user_id = cursor.lastrowid
-        except sqlite3.IntegrityError:
+        except integrity_errors():
             self.send_json(409, {"error": "Este usuário já existe."})
             return
         self.send_json(201, {"user": {"id": user_id, "name": name, "username": username, "email": email, "role": "member", "active": 0, "approved": 0}})
@@ -762,6 +823,7 @@ class CRMHandler(BaseHTTPRequestHandler):
             self.send_json(400, {"error": "Não é possível alterar o próprio acesso por esta tela."})
             return
         with connect_db() as db:
+            db.execute("BEGIN IMMEDIATE")
             target = db.execute("SELECT id, role, active, approved FROM users WHERE id = ?", (target_id,)).fetchone()
             if not target:
                 self.send_json(404, {"error": "Usuário não encontrado."})
