@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acessos da equipe | Casa Norte CRM</title>
+  <style>
+    :root {
+      --bg:#f4f6f1;
+      --paper:#ffffff;
+      --ink:#193b35;
+      --muted:#5d736b;
+      --line:#e6ece7;
+      --green:#1b5c4a;
+      --green-strong:#124d3d;
+      --green-soft:#ebf4ee;
+      --warning:#f7efe0;
+      --shadow:0 18px 46px rgba(16,31,23,.08);
+      --radius:14px;
+      --radius-lg:22px;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-height:100vh; background:var(--bg); color:var(--ink); font-family:"DM Sans","Segoe UI",Arial,sans-serif;
+    }
+    a { color:inherit; text-decoration:none; }
+    button, input, select { font:inherit; }
+    header {
+      display:flex; align-items:center; justify-content:space-between; gap:18px;
+      height:72px; padding:0 28px; background:rgba(255,255,255,.88); backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--line);
+    }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand-mark {
+      width:36px; height:36px; display:grid; place-items:center; border-radius:12px; background:var(--green);
+      color:#fff; font-weight:800; letter-spacing:.06em;
+    }
+    .brand text { font-size:16px; font-weight:800; letter-spacing:.06em; }
+    .brand small { display:block; margin-top:2px; font-size:10px; letter-spacing:.14em; color:#7a8d84; }
+    .header-actions { display:flex; align-items:center; gap:10px; }
+    .button {
+      border:1px solid var(--line); border-radius:10px; padding:9px 14px; background:#fff; color:#456256; font-weight:700; cursor:pointer; transition:background .18s, border-color .18s, transform .15s;
+    }
+    .button.primary {
+      background:var(--green); border-color:var(--green); color:#fff; box-shadow:0 10px 20px rgba(27,92,74,.16);
+    }
+    .button.primary:hover:not(:disabled) { background:var(--green-strong); }
+    .button:disabled {
+      opacity:.6; cursor:not-allowed; box-shadow:none;
+    }
+    main { max-width:1180px; margin:0 auto; padding:32px 20px 48px; }
+    .eyebrow { margin:0 0 8px; color:#7a8e84; font-size:11px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; }
+    h1 { margin:0; font-size:30px; }
+    .subtitle { margin:8px 0 0; color:var(--muted); }
+    .stats-grid {
+      display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-top:22px;
+    }
+    .stat {
+      padding:20px 18px; background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow);
+    }
+    .stat-top { display:flex; align-items:center; justify-content:space-between; color:#83938b; font-size:11px; font-weight:700; }
+    .stat-icon {
+      width:32px; height:32px; display:grid; place-items:center; border-radius:10px; background:var(--green-soft); color:var(--green);
+    }
+    .stat-value { margin-top:14px; font-size:30px; font-weight:800; }
+    .stat-meta { margin-top:4px; color:#71857d; font-size:11px; }
+    .layout {
+      display:grid; grid-template-columns:minmax(290px,330px) minmax(0,1fr); gap:18px; margin-top:22px; align-items:start;
+    }
+    .panel { background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); }
+    .panel-head { padding:18px 18px 12px; border-bottom:1px solid #edf2ee; }
+    .panel-head h2 { margin:0; font-size:15px; }
+    .panel-head p { margin:6px 0 0; color:var(--muted); font-size:12px; }
+    form { display:grid; gap:12px; padding:16px 18px 18px; }
+    label { display:grid; gap:6px; font-size:11px; font-weight:700; color:#44615a; }
+    input, select {
+      width:100%; height:42px; padding:0 12px; border:1px solid var(--line); border-radius:10px; background:#fcfdfc; color:var(--ink);
+      outline:none; transition:border-color .18s, box-shadow .18s;
+    }
+    input:focus, select:focus { border-color:#7ca58e; box-shadow:0 0 0 4px rgba(64,122,95,.12); }
+    .help { color:#7a8d84; font-size:10px; }
+    .requirements {
+      display:grid; gap:8px; margin:6px 0 2px; padding:10px 12px; border:1px solid #edf1ee; border-radius:10px; background:#fafcfb;
+    }
+    .req-item {
+      display:flex; align-items:center; gap:8px; font-size:11px; color:#60766d; transition:color .15s ease;
+    }
+    .req-item::before {
+      content:"○"; display:inline-block; width:14px; font-weight:800; color:#94a59d;
+    }
+    .req-item.valid { color:#1d5b47; }
+    .req-item.valid::before { content:"✓"; color:#1d5b47; }
+    .alert { display:none; margin-top:6px; padding:10px 12px; border-radius:10px; font-size:12px; }
+    .alert.error { display:block; background:#fff1ee; border:1px solid #e7b5a7; color:#a24a3d; }
+    .alert.success { display:block; background:#edf8ef; border:1px solid #bfe0c5; color:#234e3f; }
+    .toolbar { display:flex; align-items:center; gap:10px; padding:16px 18px 0; }
+    .search {
+      flex:1; min-width:0; height:40px; padding:0 12px; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink);
+    }
+    .table-wrap { overflow:auto; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:12px 14px; border-top:1px solid #edf1ee; text-align:left; font-size:12px; }
+    th { background:#fafbf9; color:#8a9a90; text-transform:uppercase; letter-spacing:.08em; }
+    td strong { color:var(--ink); }
+    .user-cell small { display:block; margin-top:4px; color:#8a9a90; }
+    .badge {
+      display:inline-flex; align-items:center; justify-content:center; min-width:74px; height:26px; padding:0 10px;
+      border-radius:999px; font-size:11px; font-weight:700;
+    }
+    .badge.admin { background:#eaf8ee; color:#2d644d; }
+    .badge.member { background:#edf3ff; color:#49618a; }
+    .badge.active { background:#edf8ef; color:#2a6449; }
+    .badge.inactive { background:#fff1ee; color:#a14d3d; }
+    .badge.pending { background:#fff7e8; color:#8a6321; }
+    .muted { color:var(--muted); }
+    .delete-button {
+      border:1px solid #e7b5a7; border-radius:8px; padding:7px 10px; background:#fff1ee; color:#a24a3d;
+      font-weight:700; cursor:pointer;
+    }
+    .delete-button:hover { background:#ffe3dd; }
+    .delete-button:disabled { opacity:.6; cursor:wait; }
+    @media (max-width:900px) {
+      .stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .layout { grid-template-columns:1fr; }
+    }
+    @media (max-width:560px) {
+      .stats-grid { grid-template-columns:1fr; }
+      header { padding:0 16px; }
+      main { padding-left:16px; padding-right:16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-mark">CN</div>
+      <div>
+        <text>Casa Norte</text>
+        <small>CRM IMOBILIÁRIO</small>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a class="button" href="/">Voltar ao CRM</a>
+      <button class="button primary" type="button" id="logout-btn">Sair</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="eyebrow">Administração</div>
+    <h1>Acessos da equipe</h1>
+    <p class="subtitle">Gerencie perfis, permissões e o acesso individual da operação comercial.</p>
+
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-top"><span>Total</span><span class="stat-icon">⇢</span></div>
+        <div id="total-users" class="stat-value">0</div>
+        <div class="stat-meta">contas cadastradas</div>
+      </div>
+      <div class="stat">
+        <div class="stat-top"><span>Ativos</span><span class="stat-icon">✓</span></div>
+        <div id="active-users" class="stat-value">0</div>
+        <div class="stat-meta">com acesso liberado</div>
+      </div>
+      <div class="stat">
+        <div class="stat-top"><span>Admins</span><span class="stat-icon">★</span></div>
+        <div id="admin-users" class="stat-value">0</div>
+        <div class="stat-meta">com permissão total</div>
+      </div>
+      <div class="stat">
+        <div class="stat-top"><span>Pendentes</span><span class="stat-icon">•</span></div>
+        <div id="pending-users" class="stat-value">0</div>
+        <div class="stat-meta">esperando aprovação</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Novo acesso</h2>
+          <p>Crie uma conta com senha individual.</p>
+        </div>
+
+        <form id="create-form">
+          <label>Nome completo<input name="name" required maxlength="100" autocomplete="name"></label>
+          <label>Usuário de acesso<input name="username" required minlength="3" maxlength="80" autocomplete="off"></label>
+          <label>Senha inicial<input name="password" type="password" required minlength="12" autocomplete="new-password"></label>
+          <label>Perfil<select name="role"><option value="member">Equipe</option><option value="admin">Administrador</option></select></label>
+          <div class="requirements" aria-live="polite">
+            <div class="req-item" data-check="name">Nome completo informado</div>
+            <div class="req-item" data-check="username">Usuário com 3 a 80 caracteres válidos</div>
+            <div class="req-item" data-check="password">Senha com pelo menos 12 caracteres</div>
+            <div class="req-item" data-check="role">Perfil selecionado</div>
+          </div>
+          <div id="form-message" class="alert" role="status"></div>
+          <button class="button primary" type="submit" id="create-user-button" disabled>Criar acesso</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Contas cadastradas</h2>
+          <p>Lista atualizada com perfil, status e atividade recente.</p>
+        </div>
+
+        <div class="toolbar">
+          <input id="user-search" class="search" type="search" placeholder="Buscar por nome, usuário ou e-mail">
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Pessoa</th>
+                <th>E-mail</th>
+                <th>Perfil</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="users-table"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const totalUsersEl = document.getElementById('total-users');
+    const activeUsersEl = document.getElementById('active-users');
+    const adminUsersEl = document.getElementById('admin-users');
+    const pendingUsersEl = document.getElementById('pending-users');
+    const tableBody = document.getElementById('users-table');
+    const searchInput = document.getElementById('user-search');
+
+    function renderStats(users) {
+      totalUsersEl.textContent = users.length;
+      activeUsersEl.textContent = users.filter(user => user.active).length;
+      adminUsersEl.textContent = users.filter(user => user.role === 'admin' && user.active).length;
+      pendingUsersEl.textContent = users.filter(user => !user.approved && user.active).length;
+    }
+
+    function statusBadge(user) {
+      if (!user.active) return '<span class="badge inactive">Inativo</span>';
+      if (!user.approved) return '<span class="badge pending">Pendente</span>';
+      return '<span class="badge active">Ativo</span>';
+    }
+
+    function roleBadge(user) {
+      return user.role === 'admin'
+        ? '<span class="badge admin">Admin</span>'
+        : '<span class="badge member">Equipe</span>';
+    }
+
+    function filterUsers(users, term) {
+      const query = term.trim().toLowerCase();
+      if (!query) return users;
+      return users.filter((user) => [user.name, user.username, user.email || ''].join(' ').toLowerCase().includes(query));
+    }
+
+    async function loadUsers() {
+      try {
+        const response = await fetch('/api/users', { credentials: 'same-origin' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Erro ao carregar usuários.');
+
+        const users = Array.isArray(data.users) ? data.users : [];
+        renderStats(users);
+
+        const filtered = filterUsers(users, searchInput.value);
+        tableBody.innerHTML = filtered.length
+          ? filtered.map((user) => `
+              <tr>
+                <td class="user-cell"><strong>${user.name}</strong><small>@${user.username}</small></td>
+                <td class="muted">${user.email || '-'}</td>
+                <td>${roleBadge(user)}</td>
+                <td>${statusBadge(user)}</td>
+                <td>${user.id === data.currentUserId ? '-' : `<button class="delete-button" type="button" data-user-id="${user.id}">Excluir</button>`}</td>
+              </tr>
+            `).join('')
+          : '<tr><td colspan="5" class="muted">Nenhum usuário encontrado.</td></tr>';
+      } catch (error) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="muted">' + error.message + '</td></tr>';
+      }
+    }
+
+    searchInput.addEventListener('input', loadUsers);
+
+    tableBody.addEventListener('click', async (event) => {
+      const button = event.target.closest('.delete-button');
+      if (!button) return;
+
+      const userName = button.closest('tr').querySelector('.user-cell strong').textContent;
+      if (!window.confirm(`Excluir permanentemente o usuário ${userName}? Esta ação não pode ser desfeita.`)) return;
+
+      button.disabled = true;
+      button.textContent = 'Excluindo...';
+      try {
+        const response = await fetch(`/api/users/${encodeURIComponent(button.dataset.userId)}`, {
+          method: 'DELETE',
+          credentials: 'same-origin'
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Erro ao excluir usuário.');
+        await loadUsers();
+      } catch (error) {
+        window.alert(error.message);
+        button.disabled = false;
+        button.textContent = 'Excluir';
+      }
+    });
+
+    const createForm = document.getElementById('create-form');
+    const createButton = document.getElementById('create-user-button');
+    const createFormChecks = {
+      name: () => createForm.elements.name.value.trim().length > 0,
+      username: () => {
+        const value = createForm.elements.username.value.trim();
+        return /^[a-z0-9._-]{3,80}$/i.test(value);
+      },
+      password: () => createForm.elements.password.value.length >= 12,
+      role: () => ['member', 'admin'].includes(createForm.elements.role.value)
+    };
+
+    function updateCreateFormState() {
+      const checks = Object.entries(createFormChecks).map(([key, validator]) => ({ key, valid: validator() }));
+      const allValid = checks.every(item => item.valid);
+      checks.forEach(({ key, valid }) => {
+        const item = document.querySelector(`.req-item[data-check="${key}"]`);
+        if (!item) return;
+        item.classList.toggle('valid', valid);
+      });
+      createButton.disabled = !allValid;
+    }
+
+    ['name', 'username', 'password', 'role'].forEach((fieldName) => {
+      createForm.elements[fieldName].addEventListener('input', updateCreateFormState);
+      createForm.elements[fieldName].addEventListener('change', updateCreateFormState);
+    });
+
+    createForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const payload = Object.fromEntries(new FormData(this));
+      const messageEl = document.getElementById('form-message');
+
+      if (!Object.values(createFormChecks).every((validator) => validator())) {
+        messageEl.className = 'alert error';
+        messageEl.textContent = 'Preencha todos os requisitos antes de criar o acesso.';
+        updateCreateFormState();
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Erro ao criar usuário.');
+
+        messageEl.className = 'alert success';
+        messageEl.textContent = 'Acesso criado com sucesso.';
+        this.reset();
+        updateCreateFormState();
+        await loadUsers();
+      } catch (error) {
+        messageEl.className = 'alert error';
+        messageEl.textContent = error.message;
+      }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      try {
+        await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+      } finally {
+        location.href = '/';
+      }
+    });
+
+    updateCreateFormState();
+    loadUsers();
+  </script>
+</body>
+</html>

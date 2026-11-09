@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login | Casa Norte CRM</title>
+  <style>
+    :root {
+      --bg:#f4f6f1;
+      --paper:#ffffff;
+      --ink:#193b35;
+      --muted:#5d736b;
+      --line:#e6ece7;
+      --green:#1b5c4a;
+      --green-strong:#124d3d;
+      --green-soft:#ebf4ee;
+      --shadow:0 18px 46px rgba(16,31,23,.08);
+      --radius:14px;
+      --radius-lg:22px;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-height:100vh; display:grid; place-items:center; padding:24px;
+      background:linear-gradient(135deg,#eef3ee 0%,#f6f7f1 40%,#edf6f0 100%);
+      color:var(--ink); font-family:"DM Sans","Segoe UI",Arial,sans-serif;
+    }
+    button, input { font:inherit; }
+    .shell {
+      width:min(980px,100%); display:grid; grid-template-columns:1.12fr .88fr; overflow:hidden;
+      background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-lg); box-shadow:var(--shadow);
+    }
+    .promo {
+      position:relative; padding:42px 36px; background:linear-gradient(180deg,#134d40 0%,#1c6657 100%); color:#eaf5f0;
+    }
+    .promo::after {
+      content:""; position:absolute; inset:18px; border:1px solid rgba(255,255,255,.16); border-radius:18px;
+    }
+    .promo-inner { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand-mark {
+      width:44px; height:44px; display:grid; place-items:center; border-radius:14px;
+      background:#dff1b7; color:#163a31; font-weight:800; font-size:20px;
+    }
+    .brand text { font-size:18px; font-weight:800; letter-spacing:.08em; }
+    .brand small { display:block; font-size:10px; letter-spacing:.18em; opacity:.8; }
+    .promo h1 { margin:42px 0 12px; font-size:36px; line-height:1.1; }
+    .promo p { margin:0; max-width:320px; line-height:1.7; color:rgba(234,245,240,.82); }
+    .checklist { margin-top:auto; display:grid; gap:12px; }
+    .check-item { display:flex; align-items:center; gap:10px; font-size:14px; color:rgba(234,245,240,.9); }
+    .check-item span {
+      display:grid; place-items:center; width:20px; height:20px; border-radius:50%; background:rgba(255,255,255,.13);
+      font-size:12px; font-weight:700;
+    }
+    .panel {
+      padding:42px 34px 28px; background:#fff; display:flex; flex-direction:column; justify-content:center;
+    }
+    .eyebrow, h2, .subtitle, label, .link-button, button[type="submit"], .footer { letter-spacing:0; }
+    .eyebrow { margin:0 0 8px; font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#6d857d; }
+    h2 { margin:0 0 10px; font-size:32px; }
+    .subtitle { margin:0 0 24px; color:var(--muted); line-height:1.6; }
+    form { display:grid; gap:16px; }
+    .field { display:grid; gap:8px; }
+    label { font-size:12px; font-weight:700; color:#37514a; }
+    .input-wrap { position:relative; }
+    input {
+      width:100%; height:52px; padding:0 44px 0 14px; border:1px solid var(--line); border-radius:12px;
+      background:#fbfcfb; color:var(--ink); font-size:15px; outline:none; transition:border-color .18s, box-shadow .18s;
+    }
+    input:focus { border-color:#7ca58e; box-shadow:0 0 0 4px rgba(64,122,95,.12); }
+    .toggle-password {
+      position:absolute; right:12px; top:50%; transform:translateY(-50%);
+      border:0; background:transparent; color:#5d736b; font-size:12px; font-weight:700; cursor:pointer;
+    }
+    .actions { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:4px; }
+    .link-button { color:var(--green); font-size:12px; font-weight:700; text-decoration:none; }
+    button[type="submit"] {
+      width:100%; height:52px; border:0; border-radius:12px; background:var(--green); color:white; font-weight:700; cursor:pointer; box-shadow:0 12px 22px rgba(27,92,74,.2);
+    }
+    button[type="submit"]:hover:not(:disabled) { background:var(--green-strong); }
+    button[type="submit"]:disabled {
+      opacity:.6; cursor:not-allowed; box-shadow:none;
+    }
+    .requirements {
+      display:grid; gap:8px; margin:2px 0 0; padding:10px 12px; border:1px solid #edf1ee; border-radius:10px; background:#fafcfb;
+    }
+    .req-item {
+      display:flex; align-items:center; gap:8px; font-size:11px; color:#60766d; transition:color .15s ease;
+    }
+    .req-item::before {
+      content:"○"; display:inline-block; width:14px; font-weight:800; color:#94a59d;
+    }
+    .req-item.valid { color:#1d5b47; }
+    .req-item.valid::before { content:"✓"; color:#1d5b47; }
+    .alert {
+      display:none; margin-top:6px; padding:10px 12px; border-radius:10px; font-size:13px;
+    }
+    .alert.error { display:block; background:#fff1ee; border:1px solid #e7b5a7; color:#a24a3d; }
+    .alert.success { display:block; background:#edf8ef; border:1px solid #bfe0c5; color:#234e3f; }
+    .footer { margin-top:20px; text-align:center; color:var(--muted); font-size:13px; }
+    .footer a { color:var(--green); text-decoration:none; font-weight:700; }
+    @media (max-width: 820px) {
+      .shell { grid-template-columns:1fr; }
+      .promo { padding:30px 24px; }
+      .panel { padding:28px 22px 26px; }
+      h2 { font-size:28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="promo">
+      <div class="promo-inner">
+        <div class="brand">
+          <div class="brand-mark">CN</div>
+          <div>
+            <text>Casa Norte</text>
+            <small>CRM IMOBILIÁRIO</small>
+          </div>
+        </div>
+
+        <h1>Mais controle. Mais rapidez. Mais confiança.</h1>
+        <p>Centralize leads, acompanhe atividades e mantenha a operação comercial em um único lugar.</p>
+
+        <div class="checklist">
+          <div class="check-item"><span>✓</span> Acesso individual por perfil</div>
+          <div class="check-item"><span>✓</span> Gestão de leads e documentos</div>
+          <div class="check-item"><span>✓</span> Visão do pipeline por etapa</div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="panel">
+      <div class="eyebrow">Acesso</div>
+      <h2>Entrar</h2>
+      <p class="subtitle">Use sua conta para acessar o painel comercial da Casa Norte.</p>
+
+      <form id="login-form">
+        <div class="field">
+          <label for="username">Usuário</label>
+          <div class="input-wrap">
+            <input id="username" name="username" type="text" placeholder="seu.usuario" autocomplete="username" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">Senha</label>
+          <div class="input-wrap">
+            <input id="password" name="password" type="password" placeholder="••••••••••••" autocomplete="current-password" required>
+            <button class="toggle-password" type="button" aria-label="Mostrar senha">Mostrar</button>
+          </div>
+        </div>
+
+        <div class="actions">
+          <a class="link-button" href="/cadastro">Criar cadastro</a>
+        </div>
+
+        <div class="requirements" aria-live="polite">
+          <div class="req-item" data-check="username">Usuário informado</div>
+          <div class="req-item" data-check="password">Senha com pelo menos 12 caracteres</div>
+        </div>
+
+        <button type="submit" id="submit-button" disabled>Entrar no CRM</button>
+      </form>
+
+      <div id="message" class="alert" role="status" aria-live="polite"></div>
+
+      <div class="footer">Ainda não tem acesso? <a href="/cadastro">Solicite um cadastro</a></div>
+    </section>
+  </div>
+
+  <script>
+    const form = document.getElementById('login-form');
+    const message = document.getElementById('message');
+    const passwordInput = document.getElementById('password');
+    const togglePassword = document.querySelector('.toggle-password');
+    const submitButton = document.getElementById('submit-button');
+
+    function showMessage(text, kind) {
+      message.textContent = text;
+      message.className = 'alert ' + kind;
+    }
+
+    const loginChecks = {
+      username: () => document.getElementById('username').value.trim().length > 0,
+      password: () => passwordInput.value.length >= 12
+    };
+
+    function updateLoginState() {
+      const checks = Object.entries(loginChecks).map(([key, validator]) => ({ key, valid: validator() }));
+      const allValid = checks.every(item => item.valid);
+      checks.forEach(({ key, valid }) => {
+        const item = document.querySelector(`.req-item[data-check="${key}"]`);
+        if (item) item.classList.toggle('valid', valid);
+      });
+      submitButton.disabled = !allValid;
+    }
+
+    ['username', 'password'].forEach((fieldId) => {
+      document.getElementById(fieldId).addEventListener('input', updateLoginState);
+      document.getElementById(fieldId).addEventListener('change', updateLoginState);
+    });
+
+    togglePassword.addEventListener('click', () => {
+      const visible = passwordInput.type === 'text';
+      passwordInput.type = visible ? 'password' : 'text';
+      togglePassword.textContent = visible ? 'Mostrar' : 'Ocultar';
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!Object.values(loginChecks).every((validator) => validator())) {
+        showMessage('Preencha usuário e senha válidos antes de entrar.', 'error');
+        updateLoginState();
+        return;
+      }
+
+      const username = document.getElementById('username').value.trim();
+      const password = passwordInput.value;
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Erro ao autenticar.');
+
+        showMessage('Login realizado com sucesso. Redirecionando...', 'success');
+        window.location.href = '/';
+      } catch (error) {
+        showMessage(error.message, 'error');
+      }
+    });
+
+    updateLoginState();
+  </script>
+</body>
+</html>

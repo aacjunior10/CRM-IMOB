@@ -30,9 +30,11 @@ Abra `http://127.0.0.1:8000` no próprio computador ou `http://SEU_IP_DA_REDE:80
 
 Na tela de login, o link **Criar cadastro de acesso** permite que corretores enviem uma solicitação de conta. Esses cadastros recebem sempre o perfil **Equipe**, ficam pendentes e só podem entrar após aprovação de um administrador. Contas criadas diretamente na área administrativa já ficam aprovadas.
 
-No cadastro do corretor, o e-mail é obrigatório e a foto de perfil é opcional. São aceitas imagens PNG, JPEG ou WebP de até 512 KB; o e-mail aparece na lista de acessos administrativos.
+No cadastro do corretor, o e-mail é obrigatório, a foto de perfil é opcional e a senha deve ser repetida para confirmar que foi digitada corretamente. São aceitas imagens PNG, JPEG ou WebP de até 512 KB; o e-mail aparece na lista de acessos administrativos.
 
 Na tela de login, use **Mostrar** para conferir a senha digitada. Se alguém esquecer a senha, deve solicitar a redefinição ao administrador, que pode usar **Redefinir senha** em **Acessos da equipe**. A nova senha deve ter pelo menos 12 caracteres e a alteração encerra as sessões anteriores da conta. Se o administrador precisar redefinir a própria senha, outro administrador pode fazê-lo; alternativamente, use `python manage_users.py reset-password --username SEU_USUARIO` no terminal do servidor.
+
+Na lista de **Acessos da equipe**, um administrador pode excluir permanentemente outra conta pelo botão **Excluir**. A tela pede confirmação antes da exclusão. A conta do administrador conectado não pode ser excluída por essa tela, e o último administrador ativo deve ser mantido.
 
 ## Operação
 
